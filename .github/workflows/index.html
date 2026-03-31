@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heat & Seat</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+--bg:#0b0f1a;
+--card:#121826;
+--accent:linear-gradient(135deg,#22c55e,#9333ea);
+}
+
+body{
+margin:0;
+font-family:Poppins;
+background:var(--bg);
+color:white;
+}
+
+/* HEADER */
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px;
+}
+
+h1{
+font-size:28px;
+background:var(--accent);
+-webkit-background-clip:text;
+color:transparent;
+}
+
+/* HELP BUTTON */
+.help{
+cursor:pointer;
+font-size:20px;
+}
+
+/* PRODUCTS */
+.products{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:10px;
+padding:10px;
+}
+
+.card{
+background:var(--card);
+border-radius:20px;
+padding:10px;
+}
+.card img{
+width:100%;
+border-radius:15px;
+}
+.add{
+background:var(--accent);
+border:none;
+padding:8px;
+width:100%;
+border-radius:10px;
+color:white;
+}
+
+/* CART BUTTON */
+.cart-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:var(--accent);
+padding:15px;
+border-radius:50%;
+cursor:pointer;
+}
+
+/* FULL PAGE MODALS */
+.page{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:var(--bg);
+display:none;
+overflow:auto;
+padding:20px;
+}
+
+input,textarea{
+width:100%;
+padding:10px;
+margin:6px 0;
+border:none;
+border-radius:10px;
+background:#1e293b;
+color:white;
+}
+
+button{
+padding:12px;
+border:none;
+border-radius:10px;
+background:var(--accent);
+color:white;
+width:100%;
+margin-top:10px;
+}
+
+/* HELP PAGE ICONS */
+.link{
+display:flex;
+align-items:center;
+gap:10px;
+margin:10px 0;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="help" onclick="openHelp()">☰</div>
+<h1>Heat & Seat</h1>
+<div></div>
+</header>
+
+<div class="products" id="products"></div>
+
+<div class="cart-btn" onclick="openCart()">🛒</div>
+
+<!-- CART PAGE -->
+<div class="page" id="cartPage">
+<h2>Cart & Checkout</h2>
+
+<div id="cartItems"></div>
+<h3>Total ₹<span id="total"></span></h3>
+
+<form id="orderForm" action="https://formspree.io/f/xjgprogr" method="POST">
+
+<input name="name" required placeholder="Full Name">
+
+<input name="contact" required placeholder="Phone OR Instagram ID">
+
+<textarea name="address" required placeholder="Delivery Address"></textarea>
+
+<input name="time" placeholder="Preferred Time Slot">
+
+<label><input type="checkbox" required> I am above 18</label>
+
+<input type="hidden" name="order_details" id="orderData">
+
+<button>Place Order</button>
+
+</form>
+
+<button onclick="closeCart()">Close</button>
+</div>
+
+<!-- HELP PAGE -->
+<div class="page" id="helpPage">
+<h2>Help & Contact</h2>
+
+<div class="link" onclick="window.open('https://wa.me/916201276342')">
+📱 WhatsApp Support
+</div>
+
+<div class="link" onclick="window.open('https://instagram.com/Logan_cuban')">
+📸 Instagram: Logan_cuban
+</div>
+
+<button onclick="closeHelp()">Back</button>
+</div>
+
+<script>
+
+const products=[
+{name:"Heeat (3g)",price:50,img:"https://i.ibb.co/hR2T56cx/50rs-Pudiya.jpg"},
+{name:"Hoiunt Roll",price:30,img:"https://i.ibb.co/dw7gZ1MH/Joint.jpg"},
+{name:"GovindPur Heeat",price:600,img:"https://i.ibb.co/tTt9shS3/Green.jpg"},
+{name:"Hybrid Seed",price:80,img:"https://i.ibb.co/qLmTXFDc/Weed-Seed.jpg"}
+];
+
+let cart=[];
+
+function render(){
+let box=document.getElementById("products");
+box.innerHTML="";
+products.forEach((p,i)=>{
+box.innerHTML+=`
+<div class="card">
+<img src="${p.img}">
+<h4>${p.name}</h4>
+<p>₹${p.price}</p>
+<button class="add" onclick="add(${i})">Add</button>
+</div>`;
+});
+}
+
+function add(i){
+let item=cart.find(c=>c.name===products[i].name);
+if(item)item.qty++;
+else cart.push({...products[i],qty:1});
+alert("Added to cart");
+}
+
+function openCart(){
+document.getElementById("cartPage").style.display="block";
+drawCart();
+}
+
+function closeCart(){
+document.getElementById("cartPage").style.display="none";
+}
+
+function drawCart(){
+let html="",total=0;
+cart.forEach((c,i)=>{
+total+=c.price*c.qty;
+html+=`${c.name} x${c.qty}<br>`;
+});
+document.getElementById("cartItems").innerHTML=html;
+document.getElementById("total").innerText=total;
+}
+
+document.getElementById("orderForm").onsubmit=function(e){
+
+if(cart.length==0){
+alert("Cart empty");
+e.preventDefault();
+return;
+}
+
+let total=0,txt="Order:\n";
+
+cart.forEach(c=>{
+let t=c.price*c.qty;
+total+=t;
+txt+=`${c.name} x${c.qty} = ₹${t}\n`;
+});
+
+txt+="Total ₹"+total;
+
+document.getElementById("orderData").value=txt;
+
+setTimeout(()=>{cart=[];},1000);
+
+};
+
+function openHelp(){
+document.getElementById("helpPage").style.display="block";
+}
+function closeHelp(){
+document.getElementById("helpPage").style.display="none";
+}
+
+render();
+
+</script>
+
+</body>
+</html>
